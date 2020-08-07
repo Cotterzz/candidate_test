@@ -4,28 +4,58 @@ var renderer = new THREE.WebGLRenderer({canvas:document.getElementById("canvas3d
 renderer.physicallyCorrectLights = true;      // these two settings are required for 
 renderer.outputEncoding = THREE.sRGBEncoding; // certain gltf features or extensions
 renderer.setSize(window.innerWidth, window.innerHeight);
-scene.background = new THREE.Color( "#333333");
+scene.background = new THREE.Color( "#aaaaaa");
 var camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 1000);
 scene.add(camera);
 camera.position.set(0, 0, 100);
 camera.lookAt(scene.position);
 var orbitcontrols = new THREE.OrbitControls(camera, document.getElementById("canvas3d"));
-var light = new THREE.AmbientLight("#ffffff", 30);
+var light = new THREE.AmbientLight("#ffffff", 50);
 scene.add(light);
-var light1 = new THREE.DirectionalLight("#ffffff",10);
+var light1 = new THREE.DirectionalLight("#ffffff",30);
 light1.position.set(0, 100,50);
 scene.add(light1);
-var light2 = new THREE.HemisphereLight( 0xffffff, 0xffaaaa, 10 );
-scene.add( light2 );
+//var light2 = new THREE.HemisphereLight( 0xffffff, 0xffaaaa, 10 );
+//scene.add( light2 );
+
+var manager = new THREE.LoadingManager();
+manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
+
+	console.log( 'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+
+};
+
+manager.onLoad = function ( ) {
+
+	console.log( 'Loading complete!');
+
+};
 
 
-var loader = new THREE.GLTFLoader().setPath( 'model_source/original/' );
+manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
+
+	console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+
+};
+
+manager.onError = function ( url ) {
+
+	console.log( 'There was an error loading ' + url );
+
+};
+
+
+var loader = new THREE.GLTFLoader(manager).setPath( 'model_source/original/' );
+
 loader.load( 'scene.gltf', function ( gltf ) {
+//var loader = new THREE.GLTFLoader().setPath( 'model/' );
+//loader.load( 'paintbody_decimated_bisected_e.gltf', function ( gltf ) {
 	gltf.scene.traverse( function ( child ) {} );
 	scene.add( gltf.scene );
 	animate();
-
-} );
+	},function ( data ) {
+		console.log("progress:" + data.loaded + " of " + data.total);
+	} );
 
 
 function animate(){
