@@ -1,0 +1,114 @@
+{
+    "asset" : {
+        "generator" : "Khronos glTF Blender I/O v1.2.75",
+        "version" : "2.0"
+    },
+    "scene" : 0,
+    "scenes" : [
+        {
+            "name" : "Scene",
+            "nodes" : [
+                0
+            ]
+        }
+    ],
+    "nodes" : [
+        {
+            "mesh" : 0,
+            "name" : "Plane.045_paint_0.001",
+            "rotation" : [
+                -1,
+                0,
+                0,
+                1
+            ]
+        }
+    ],
+    "materials" : [
+        {
+            "doubleSided" : true,
+            "name" : "Material",
+            "pbrMetallicRoughness" : {}
+        }
+    ],
+    "meshes" : [
+        {
+            "name" : "Plane.045_paint_0.001",
+            "primitives" : [
+                {
+                    "attributes" : {
+                        "POSITION" : 0,
+                        "NORMAL" : 1,
+                        "TEXCOORD_0" : 2
+                    },
+                    "indices" : 3,
+                    "material" : 0
+                }
+            ]
+        }
+    ],
+    "accessors" : [
+        {
+            "bufferView" : 0,
+            "componentType" : 5126,
+            "count" : 29844,
+            "max" : [
+                4.464162349700928,
+                11.538731575012207,
+                3.8033697605133057
+            ],
+            "min" : [
+                -0.013952821493148804,
+                -11.48461627960205,
+                -2.57416033744812
+            ],
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 1,
+            "componentType" : 5126,
+            "count" : 29844,
+            "type" : "VEC3"
+        },
+        {
+            "bufferView" : 2,
+            "componentType" : 5126,
+            "count" : 29844,
+            "type" : "VEC2"
+        },
+        {
+            "bufferView" : 3,
+            "componentType" : 5123,
+            "count" : 125652,
+            "type" : "SCALAR"
+        }
+    ],
+    "bufferViews" : [
+        {
+            "buffer" : 0,
+            "byteLength" : 358128,
+            "byteOffset" : 0
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 358128,
+            "byteOffset" : 358128
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 238752,
+            "byteOffset" : 716256
+        },
+        {
+            "buffer" : 0,
+            "byteLength" : 251304,
+            "byteOffset" : 955008
+        }
+    ],
+    "buffers" : [
+        {
+            "byteLength" : 1206312,
+            "uri" : "paintbody_decimated_bisected_e.bin"
+        }
+    ]
+}
