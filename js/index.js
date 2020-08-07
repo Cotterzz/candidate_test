@@ -47,10 +47,10 @@ manager.onError = function ( url ) {
 
 var loader = new THREE.GLTFLoader(manager).setPath( 'model_source/original/' );
 
-loader.load( 'scene.gltf', function ( gltf ) {
+loader.load( 'scene.glb', function ( gltf ) {
 //var loader = new THREE.GLTFLoader().setPath( 'model/' );
 //loader.load( 'paintbody_decimated_bisected_e.gltf', function ( gltf ) {
-	gltf.scene.traverse( function ( child ) {} );
+	//gltf.scene.traverse( function ( child ) {} );
 	scene.add( gltf.scene );
 	animate();
 	},function ( data ) {
