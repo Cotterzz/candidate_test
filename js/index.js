@@ -17,44 +17,52 @@ light1.position.set(0, 100,50);
 scene.add(light1);
 //var light2 = new THREE.HemisphereLight( 0xffffff, 0xffaaaa, 10 );
 //scene.add( light2 );
-
+animate();
+var outputtext = document.getElementById("overlay");
 var manager = new THREE.LoadingManager();
 manager.onStart = function ( url, itemsLoaded, itemsTotal ) {
 
-	console.log( 'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+	//console.log( 'Started loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
 
 };
 
 manager.onLoad = function ( ) {
 
-	console.log( 'Loading complete!');
+	//console.log( 'Loading complete!');
 
 };
 
 
 manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
 
-	console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+	//console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
 
 };
 
 manager.onError = function ( url ) {
 
-	console.log( 'There was an error loading ' + url );
+	outputtext.innerHTML = ( 'There was an error loading ' + url );
 
 };
 
 
 var loader = new THREE.GLTFLoader(manager).setPath( 'model_source/original/' );
 
+var total = 74464868;
+
+//console.log(outputtext);
 loader.load( 'scene.glb', function ( gltf ) {
 //var loader = new THREE.GLTFLoader().setPath( 'model/' );
 //loader.load( 'paintbody_decimated_bisected_e.gltf', function ( gltf ) {
 	//gltf.scene.traverse( function ( child ) {} );
 	scene.add( gltf.scene );
-	animate();
+	outputtext.innerHTML = "Loaded. Use left mouse button and move to rotate, right mouse button and move to pan, and mousewheel to zoom.";
 	},function ( data ) {
-		console.log("progress:" + data.loaded + " of " + data.total);
+		
+		var percentage = Math.ceil(100*(data.loaded/74464868));
+		outputtext.innerHTML = "Loading:" + percentage + "%";
+		//console.log("progress:" + percentage + "%");
+		
 	} );
 
 

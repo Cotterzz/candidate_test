@@ -1,0 +1,14 @@
+body {
+	font-family: 'Quicksand', sans-serif;
+	background-color: #ffffff;
+	overflow: hidden;
+	margin: 0px;
+	padding: 0px;
+}
+
+#overlay {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	z-index: 1;
+}
