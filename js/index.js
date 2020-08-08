@@ -56,7 +56,7 @@ loader.load( 'paintbody_decimated_bisected.glb', function ( gltf ) {
 	outputtext.innerHTML = "Loaded. Use left mouse button and move to rotate, right mouse button and move to pan, and mousewheel to zoom.";
 	},function ( data ) {
 		
-		var percentage = Math.ceil(100*(data.loaded/74464868));
+		var percentage = Math.ceil(100*(data.loaded/1720320));
 		outputtext.innerHTML = "Loading:" + percentage + "%";
 		//console.log("progress:" + percentage + "%");
 		
