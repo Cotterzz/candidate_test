@@ -16,49 +16,166 @@ var orbitcontrols = new THREE.OrbitControls(camera, document.getElementById("can
 // SET UP LIGHTS
 var light = new THREE.AmbientLight("#ffffff", 1);
 scene.add(light);
-var light1 = new THREE.DirectionalLight("#ffffff",1);
-light1.position.set(0, 100,50);
+var light1 = new THREE.DirectionalLight("#555555",2);
+light1.position.set(100, 200,-200);
+var light2 = new THREE.DirectionalLight("#555555",2);
+light2.position.set(-100, 200,200);
+scene.add(light2);
 scene.add(light1);
 animate();
 var outputtext = document.getElementById("overlay");
-
-var ipx = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wgARCAAgACADAREAAhEBAxEB/8QAFwABAQEBAAAAAAAAAAAAAAAAAAECA//EABgBAQEBAQEAAAAAAAAAAAAAAAABAwQC/9oADAMBAAIQAxAAAAHvvkohceVqkjXF1RCksoBP/8QAGRAAAgMBAAAAAAAAAAAAAAAAABEBEiAw/9oACAEBAAEFAsWGMccf/8QAFxEBAQEBAAAAAAAAAAAAAAAAEQAgMP/aAAgBAwEBPwHBERx//8QAGBEAAwEBAAAAAAAAAAAAAAAAAAERIDD/2gAIAQIBAT8BxUUqKuP/xAAUEAEAAAAAAAAAAAAAAAAAAABA/9oACAEBAAY/Agf/xAAaEAACAwEBAAAAAAAAAAAAAAAAEQEgURBh/9oACAEBAAE/IaIKIenFAowUZX//2gAMAwEAAgADAAAAENCOTxZUl//EABgRAQEBAQEAAAAAAAAAAAAAABEAIAEQ/9oACAEDAQE/EMKUpeHI1//EABoRAAIDAQEAAAAAAAAAAAAAAAARASBhEFH/2gAIAQIBAT8QpsJ6aG3HI5HNf//EAB0QAQEAAgIDAQAAAAAAAAAAAAEAITFBYRBxkaH/2gAIAQEAAT8Q1Pk7fkVjyhdSQdhDGQsmBLcJcR61+21bm//Z";
-var inx = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wgARCAAgACADAREAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAED/8QAFwEBAQEBAAAAAAAAAAAAAAAAAAEEA//aAAwDAQACEAMQAAAB30cSolSBQMOkAtkBR//EABkQAAMAAwAAAAAAAAAAAAAAAAABERAgMP/aAAgBAQABBQLSoqLicP/EABQRAQAAAAAAAAAAAAAAAAAAAED/2gAIAQMBAT8BB//EABcRAQEBAQAAAAAAAAAAAAAAABEAIDD/2gAIAQIBAT8BwzMzw//EABQQAQAAAAAAAAAAAAAAAAAAAED/2gAIAQEABj8CB//EABkQAAIDAQAAAAAAAAAAAAAAAAARAVFhIP/aAAgBAQABPyHjY2EHFiUKKFFCzn//2gAMAwEAAgADAAAAECNABGbP8v/EABcRAAMBAAAAAAAAAAAAAAAAAAABESD/2gAIAQMBAT8QxGRkZGRERCLP/8QAGBEBAQEBAQAAAAAAAAAAAAAAEQABIFH/2gAIAQIBAT8Q4EIQl7Ozs7z/AP/EAB8QAAIBBAIDAAAAAAAAAAAAAAABESFBUZExYXGh8P/aAAgBAQABPxCSWTlskaHDgQWsTL+jrDtroS3RNHQ8EMNFyuEL5nMo/9k=";
-var ipy = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wgARCAAgACADAREAAhEBAxEB/8QAGAABAQADAAAAAAAAAAAAAAAAAAECAwT/xAAXAQEBAQEAAAAAAAAAAAAAAAAAAQMC/9oADAMBAAIQAxAAAAHfvksAKQJVgS0lg68u8LP/xAAZEAACAwEAAAAAAAAAAAAAAAABAwAREjD/2gAIAQEAAQUC7JAjq1//xAAWEQEBAQAAAAAAAAAAAAAAAAAAAjD/2gAIAQMBAT8B2lT/xAAWEQEBAQAAAAAAAAAAAAAAAAAAAjD/2gAIAQIBAT8B2tD/xAAWEAADAAAAAAAAAAAAAAAAAAAAITD/2gAIAQEABj8Cuj//xAAaEAEAAQUAAAAAAAAAAAAAAAABABEgMDFB/9oACAEBAAE/IcQVs6NwCH//2gAMAwEAAgADAAAAEESYTiciS//EABcRAAMBAAAAAAAAAAAAAAAAAAABETD/2gAIAQMBAT8Q2gRU/8QAGREBAAIDAAAAAAAAAAAAAAAAAQARICEw/9oACAECAQE/EOV4JjU3P//EABoQAQEAAwEBAAAAAAAAAAAAAAEAEBEhMWH/2gAIAQEAAT8QmMsSZTwbkTjhm7dH6hToKdC//9k=";
-var iny = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wgARCAAgACADAREAAhEBAxEB/8QAFwABAQEBAAAAAAAAAAAAAAAAAAECA//EABcBAQEBAQAAAAAAAAAAAAAAAAABAwT/2gAMAwEAAhADEAAAAe/PqAQoJFoCRdEAP//EABQQAQAAAAAAAAAAAAAAAAAAAED/2gAIAQEAAQUCB//EABQRAQAAAAAAAAAAAAAAAAAAAED/2gAIAQMBAT8BB//EABQRAQAAAAAAAAAAAAAAAAAAAED/2gAIAQIBAT8BB//EABQQAQAAAAAAAAAAAAAAAAAAAED/2gAIAQEABj8CB//EABoQAAICAwAAAAAAAAAAAAAAAAARECABQVH/2gAIAQEAAT8hpoVHKnHT/9oADAMBAAIAAwAAABB7PZ7b5LL/xAAYEQACAwAAAAAAAAAAAAAAAAABEBEgMP/aAAgBAwEBPxChxl//xAAUEQEAAAAAAAAAAAAAAAAAAABA/9oACAECAQE/EAf/xAAgEAEAAwABAwUAAAAAAAAAAAABABEhQTFRYYGRobHw/9oACAEBAAE/EC1iDr7xvrYEotqGcvMADi/UF4vJWr8x9M6w4PMBuqZq322WWrqvEqm38Q0aM7yxaSvD0n//2Q==";
-var ipz = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wgARCAAgACADAREAAhEBAxEB/8QAFwABAQEBAAAAAAAAAAAAAAAAAAECA//EABcBAQEBAQAAAAAAAAAAAAAAAAABBAP/2gAMAwEAAhADEAAAAe+jiWwMxAC4tJSUSgg//8QAGRAAAwEBAQAAAAAAAAAAAAAAAAEREBIg/9oACAEBAAEFAssG6UqKdImT1//EABcRAQEBAQAAAAAAAAAAAAAAABEAIDD/2gAIAQMBAT8BwREcf//EABkRAAIDAQAAAAAAAAAAAAAAAAABERIgEP/aAAgBAgEBPwHFkSiyJXZ1/8QAFBABAAAAAAAAAAAAAAAAAAAAQP/aAAgBAQAGPwIH/8QAGhAAAwEBAQEAAAAAAAAAAAAAAAERUWEQIP/aAAgBAQABPyHxM1TGNWyNOxJ0IwiwjPr/2gAMAwEAAgADAAAAEDNH+7Gcm//EABkRAAMBAQEAAAAAAAAAAAAAAAABEVEQIP/aAAgBAwEBPxDicG6XhWFYVhEQi9f/xAAaEQACAwEBAAAAAAAAAAAAAAAAARExYRAg/9oACAECAQE/EONJ2JJUaGxobEslkifP/8QAHxAAAwAABgMAAAAAAAAAAAAAAAERECExQVFhcYGR/9oACAEBAAE/ENs8LRJ9FMmzrDUMm0cBypRK2fCLqT0RcIeUbFrp4wfZ/9k=";
-var inz = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDABALDA4MChAODQ4SERATGCgaGBYWGDEjJR0oOjM9PDkzODdASFxOQERXRTc4UG1RV19iZ2hnPk1xeXBkeFxlZ2P/2wBDARESEhgVGC8aGi9jQjhCY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2NjY2P/wgARCAAgACADAREAAhEBAxEB/8QAFwABAQEBAAAAAAAAAAAAAAAAAAECA//EABgBAQEBAQEAAAAAAAAAAAAAAAABAwQC/9oADAMBAAIQAxAAAAHvvkohceVqkjXF1RCksoBP/8QAGRAAAgMBAAAAAAAAAAAAAAAAABEBEiAw/9oACAEBAAEFAsWGMccf/8QAFxEBAQEBAAAAAAAAAAAAAAAAEQAgMP/aAAgBAwEBPwHBERx//8QAGBEAAwEBAAAAAAAAAAAAAAAAAAERIDD/2gAIAQIBAT8BxUUqKuP/xAAUEAEAAAAAAAAAAAAAAAAAAABA/9oACAEBAAY/Agf/xAAaEAACAwEBAAAAAAAAAAAAAAAAEQEgURBh/9oACAEBAAE/IaIKIenFAowUZX//2gAMAwEAAgADAAAAENCOTxZUl//EABgRAQEBAQEAAAAAAAAAAAAAABEAIAEQ/9oACAEDAQE/EMKUpeHI1//EABoRAAIDAQEAAAAAAAAAAAAAAAARASBhEFH/2gAIAQIBAT8QpsJ6aG3HI5HNf//EAB0QAQEAAgIDAQAAAAAAAAAAAAEAITFBYRBxkaH/2gAIAQEAAT8Q1Pk7fkVjyhdSQdhDGQsmBLcJcR61+21bm//Z"
 var envloader = new THREE.CubeTextureLoader();
-var textureCube = this.envloader.load( [ipx, inx, ipy, iny, ipz, inz], () => { loadcar()} );
-var material = new THREE.MeshPhysicalMaterial( {
+var textureCube = this.envloader.load( ["textures/px.jpg", "textures/nx.jpg", "textures/py.jpg", "textures/ny.jpg", "textures/pz.jpg", "textures/nz.jpg"], () => { loadbody()} );
 
+
+
+var paintmaterial = new THREE.MeshPhysicalMaterial( {
+			clearcoat:0,
 			side: THREE.DoubleSide,
 			envMap : textureCube,
-			envMapIntensity :3,
-			reflectivity : 0.6,
-			metalness: 0.5,
-			color: "#611212",
+			envMapIntensity :0.3,
+			reflectivity : 0.9,
+			metalness: 0,
+			color: "#310606",
 			roughness : 0
 
 		} );
-function loadcar(){
-var loader = new THREE.GLTFLoader().setPath( 'model/' );
-loader.load( 'paintbody_decimated_bisected.glb', function ( gltf ) {
+var chromematerial = new THREE.MeshPhysicalMaterial( {
+			clearcoat:0,
+			side: THREE.DoubleSide,
+			envMap : textureCube,
+			envMapIntensity :1,
+			reflectivity : 1,
+			metalness: 1,
+			color: "#aaaaaa",
+			roughness : 0
+
+		} );
+var blackmaterial = new THREE.MeshPhysicalMaterial( {
+			clearcoat:0.4,
+			side: THREE.DoubleSide,
+			//envMap : textureCube,
+			//envMapIntensity :1,
+			reflectivity : 0.5,
+			metalness: 0.1,
+			color: "#090909",
+			roughness : 0.5
+
+		} );
+
+var modelpath = 'model/' ;
+
+function loadbody(){
+	var loader = new THREE.GLTFLoader().setPath( modelpath );
+	loader.load( 'paintbody.glb', function ( gltf ) {
 	gltf.scene.traverse(function( child ) {
-            if ( child instanceof THREE.Mesh ) {
-                child.material = material;
-            }
-        } )
+        if ( child instanceof THREE.Mesh ) {
+            child.material = paintmaterial;
+        }
+    } )
 	scene.add( gltf.scene );
 	var otherhalf = gltf.scene.clone();
 	scene.add( otherhalf );
 	otherhalf.scale.x = -1;
-	outputtext.innerHTML = "Loaded. Use left mouse button and move to rotate, right mouse button and move to pan, and mousewheel to zoom.";
+	var xcorrection =0.001;
+	gltf.scene.position.x -= xcorrection;
+	otherhalf.position.x += xcorrection;
+	loadchrome();
 	},function ( data ) {
 		
 		var percentage = Math.ceil(100*(data.loaded/1720320));
-		outputtext.innerHTML = "Loading:" + percentage + "%";
-		//console.log("progress:" + percentage + "%");
+		outputtext.innerHTML = "Loading Body:" + percentage + "%";
+		
+	} );
+
+}
+
+function loadchrome(){
+	var loader = new THREE.GLTFLoader().setPath( modelpath );
+	loader.load( 'chrome.glb', function ( gltf ) {
+	gltf.scene.traverse(function( child ) {
+        if ( child instanceof THREE.Mesh ) {
+            child.material = chromematerial;
+        }
+    } )
+	scene.add( gltf.scene );
+	var otherhalf = gltf.scene.clone();
+	scene.add( otherhalf );
+	otherhalf.scale.x = -1;
+	var xcorrection =0.002;
+	gltf.scene.position.x -= xcorrection;
+	otherhalf.position.x += xcorrection;
+	loadchromeasymmetric();
+	},function ( data ) {
+		
+		var percentage = Math.ceil(100*(data.loaded/1720320));
+		outputtext.innerHTML = "Loading Chrome:" + percentage + "%";
+		
+	} );
+
+}
+
+function loadchromeasymmetric(){
+	var loader = new THREE.GLTFLoader().setPath( modelpath );
+	loader.load( 'chrome_asymmetric.glb', function ( gltf ) {
+	gltf.scene.traverse(function( child ) {
+        if ( child instanceof THREE.Mesh ) {
+            child.material = chromematerial;
+        }
+    } )
+	scene.add( gltf.scene );
+
+
+	loadfeaturesasymmetric();
+	},function ( data ) {
+		
+		var percentage = Math.ceil(100*(data.loaded/1720320));
+		outputtext.innerHTML = "Loading Asymmetric Chrome:" + percentage + "%";
+		
+	} );
+
+}
+
+function loadfeaturesasymmetric(){
+	var loader = new THREE.GLTFLoader().setPath( modelpath );
+	loader.load( 'asymmetric_features.glb', function ( gltf ) {
+	//gltf.scene.position.x-=0.01;
+	
+	scene.add( gltf.scene );
+
+	
+	loadblack();
+	},function ( data ) {
+		
+		var percentage = Math.ceil(100*(data.loaded/1720320));
+		outputtext.innerHTML = "Loading Asymmetric features:" + percentage + "%";
+		
+	} );
+
+}
+
+function loadblack(){
+	var loader = new THREE.GLTFLoader().setPath( modelpath );
+	loader.load( 'black.glb', function ( gltf ) {
+	gltf.scene.traverse(function( child ) {
+        if ( child instanceof THREE.Mesh ) {
+            child.material = blackmaterial;
+        }
+    } )
+	scene.add( gltf.scene );
+	var otherhalf = gltf.scene.clone();
+	scene.add( otherhalf );
+	otherhalf.scale.x = -1;
+	var xcorrection =-0.002;
+	gltf.scene.position.x -= xcorrection;
+	otherhalf.position.x += xcorrection;
+
+	outputtext.innerHTML = outputtext.innerHTML = "Loaded. Use left mouse button and move to rotate, right mouse button and move to pan, and mousewheel to zoom.";
+	//loadchromeasymmetric();
+	},function ( data ) {
+		
+		var percentage = Math.ceil(100*(data.loaded/1720320));
+		outputtext.innerHTML = "Loading Black Features:" + percentage + "%";
 		
 	} );
 
