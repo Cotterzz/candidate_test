@@ -1,10 +1,15 @@
+var useDraco = false;
+var shadows =  true;
 // SET UP RENDERER
 var scene = new THREE.Scene();
 var renderer = new THREE.WebGLRenderer({canvas:document.getElementById("canvas3d"),antialias:true});
 renderer.physicallyCorrectLights = true;      // these two settings are required for 
 renderer.outputEncoding = THREE.sRGBEncoding; // certain gltf features or extensions
 renderer.setSize(window.innerWidth, window.innerHeight);
-
+if (shadows) {
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+}
 // SET UP SCENE
 scene.background = new THREE.Color( "#aaaaaa");
 var camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 1000);
@@ -14,8 +19,8 @@ camera.lookAt(scene.position);
 var orbitcontrols = new THREE.OrbitControls(camera, document.getElementById("canvas3d"));
 
 // SET UP LIGHTS
-var light = new THREE.AmbientLight("#ffffff", 1);
-scene.add(light);
+//var light = new THREE.AmbientLight("#ffffff", 1);
+//scene.add(light);
 var light1 = new THREE.DirectionalLight("#999988",2);
 light1.position.set(100, 200,-200);
 var light2 = new THREE.DirectionalLight("#999988",2);
@@ -23,19 +28,67 @@ light2.position.set(-100, 200,200);
 scene.add(light2);
 scene.add(light1);
 
+if(shadows){
+	light1.castShadow = true;
+	light2.castShadow = true;
+	light1.shadow.mapSize.width = light1.shadow.mapSize.height = 2048;
+	light1.shadow.camera.near = 1;
+	light1.shadow.camera.far = 500;
+	light2.shadow.mapSize.width = light2.shadow.mapSize.height = 2048;
+	light2.shadow.camera.near = 1;
+	light2.shadow.camera.far = 500;
+};
 
-//lightw1 = new THREE.PointLight("#ffffff", 20, 20, 2);
-//lightw1.position.set(0.9, 0.1, 2.5);
-//scene.add(lightw1);
-//
-//lighto1 = new THREE.PointLight("#ffaa00", 20, 20, 2);
-//lighto1.position.set(0.9, 0.1, 2.5);
-//scene.add(lighto1);
+
+
+
+function addLights(){
+	addLight("#ffffff",0.57, 0.075, 2.0);
+	addLight("#ffffff",-0.57, 0.075, 2.0);
+	addLight("#ffffff",0.45, 0.075, 2.0);
+	addLight("#ffffff",-0.45, 0.075, 2.0);
+	addLight("#ff9900",0.75, 0.12, 1.9);
+	addLight("#ff9900",-0.75, 0.12, 1.9);
+}
+
+
+function addLight(col, x, y, z){
+	var newlightw1 = new THREE.PointLight(col, 10, 20, 2);
+	newlightw1.position.set(x, y, z);
+	scene.add(newlightw1);
+	var geometry = new THREE.SphereGeometry( 0.05, 10, 10 );
+	var material = new THREE.MeshBasicMaterial( {color: col} );
+	var sphere = new THREE.Mesh( geometry, material );
+	sphere.position.set(x, y, z);
+	//scene.add( sphere );
+}
 
 
 animate();
 var outputtext = document.getElementById("overlay");
 var envloader = new THREE.CubeTextureLoader();
+outputtext.innerHTML  = "Loading environment textures";
+
+
+var loader, dloader;
+
+
+
+
+if(useDraco){
+	var dloader = new THREE.DRACOLoader();
+	
+	dloader.setDecoderConfig({ type: 'js' });
+	//dloader.setDecoderPath( 'js/decoders/' );
+	dloader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+	loader = new THREE.GLTFLoader().setPath( 'model_draco/' );
+	loader.setDRACOLoader( dloader );
+	
+} else {
+	loader = new THREE.GLTFLoader().setPath( 'model/' );
+}
+
+
 var textureCube = this.envloader.load( ["textures/px.jpg", "textures/nx.jpg", "textures/py.jpg", "textures/ny.jpg", "textures/pz.jpg", "textures/nz.jpg"], () => { loadbody()} );
 
 
@@ -68,6 +121,21 @@ var chromematerial = new THREE.MeshPhysicalMaterial( {
 			roughness : 0
 
 		} );
+var glassmaterial = new THREE.MeshPhysicalMaterial( {
+			clearcoat:0,
+			transparent:true,
+			opacity:0.4,
+			
+			//side: THREE.DoubleSide,
+			envMap : textureCube,
+			envMapIntensity :3,
+			reflectivity : 1,
+			metalness: 0,
+			color: "#000000",
+			emissive: "#000000",
+			roughness : 0
+
+		} );
 var blackmaterial = new THREE.MeshPhysicalMaterial( {
 			clearcoat:0.3,
 			clearcoatRoughness:0.3,
@@ -81,14 +149,32 @@ var blackmaterial = new THREE.MeshPhysicalMaterial( {
 
 		} );
 
-var modelpath = 'model/' ;
+
+
+
+// SET UP GROUND
+var ggeometry = new THREE.SphereGeometry( 100, 100, 100 );
+var gmaterial = blackmaterial;//new THREE.MeshBasicMaterial( {color: "#ffffff"} );
+var gsphere = new THREE.Mesh( ggeometry, gmaterial );
+gsphere.position.set(0, -100.5, 0);
+scene.add( gsphere );
+if(shadows){
+	//gsphere.castShadow = true;
+	gsphere.receiveShadow = true;
+};
+
+
 
 function loadbody(){
-	var loader = new THREE.GLTFLoader().setPath( modelpath );
+	
 	loader.load( 'paintbody.glb', function ( gltf ) {
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
             child.material = paintmaterial;
+            if(shadows){
+            	child.castShadow = true;
+				//child.receiveShadow = true;
+			}
         }
     } )
 	scene.add( gltf.scene );
@@ -109,11 +195,15 @@ function loadbody(){
 }
 
 function loadchrome(){
-	var loader = new THREE.GLTFLoader().setPath( modelpath );
+	//var loader = new THREE.GLTFLoader().setPath( modelpath );
 	loader.load( 'chrome.glb', function ( gltf ) {
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
             child.material = chromematerial;
+            if(shadows){
+            	child.castShadow = true;
+				child.receiveShadow = true;
+			}
         }
     } )
 	scene.add( gltf.scene );
@@ -134,11 +224,15 @@ function loadchrome(){
 }
 
 function loadchromeasymmetric(){
-	var loader = new THREE.GLTFLoader().setPath( modelpath );
+	//var loader = new THREE.GLTFLoader().setPath( modelpath );
 	loader.load( 'chrome_asymmetric.glb', function ( gltf ) {
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
             child.material = chromematerial;
+                        if(shadows){
+            	child.castShadow = true;
+				child.receiveShadow = true;
+			}
         }
     } )
 	scene.add( gltf.scene );
@@ -155,13 +249,17 @@ function loadchromeasymmetric(){
 }
 
 function loadfeaturesasymmetric(){
-	var loader = new THREE.GLTFLoader().setPath( modelpath );
+	//var loader = new THREE.GLTFLoader().setPath( modelpath );
 	loader.load( 'asymmetric_features.glb', function ( gltf ) {
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
             if(child.name.substring(0,7)=="blacken"){
             	child.material = blackmaterial;
             };
+                        if(shadows){
+            	child.castShadow = true;
+				//child.receiveShadow = true;
+			}
         }
     } )
 	
@@ -179,11 +277,15 @@ function loadfeaturesasymmetric(){
 }
 
 function loadblack(){
-	var loader = new THREE.GLTFLoader().setPath( modelpath );
+	//var loader = new THREE.GLTFLoader().setPath( modelpath );
 	loader.load( 'black.glb', function ( gltf ) {
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
             child.material = blackmaterial;
+                        if(shadows){
+            	child.castShadow = true;
+				//child.receiveShadow = true;
+			}
         }
     } )
 	scene.add( gltf.scene );
@@ -206,11 +308,14 @@ function loadblack(){
 }
 
 function loadwheelblack(){
-	var loader = new THREE.GLTFLoader().setPath( modelpath );
+	//var loader = new THREE.GLTFLoader().setPath( modelpath );
 	loader.load( 'wheel_black.glb', function ( gltf ) {
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
-            //child.material = blackmaterial;
+                        if(shadows){
+            	child.castShadow = true;
+				child.receiveShadow = true;
+			}
         }
     } )
     var back = new THREE.Object3D();
@@ -240,11 +345,15 @@ function loadwheelblack(){
 }
 
 function loadwheelchrome(){
-	var loader = new THREE.GLTFLoader().setPath( modelpath );
+	//var loader = new THREE.GLTFLoader().setPath( modelpath );
 	loader.load( 'wheel_chrome.glb', function ( gltf ) {
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
             child.material = chromematerial;
+                        if(shadows){
+            	//child.castShadow = true;
+				child.receiveShadow = true;
+			}
         }
     } )
     var back = new THREE.Object3D();
@@ -274,9 +383,17 @@ function loadwheelchrome(){
 }
 
 function loadlights(){
-	var loader = new THREE.GLTFLoader().setPath( modelpath );
+	//var loader = new THREE.GLTFLoader().setPath( modelpath );
 	loader.load( 'lights.glb', function ( gltf ) {
-	
+	gltf.scene.traverse(function( child ) {
+        if ( child instanceof THREE.Mesh ) {
+
+            if(shadows){
+            	//child.castShadow = true;
+				child.receiveShadow = true;
+			}
+        }
+    } )
 	scene.add( gltf.scene );
 	var otherhalf = gltf.scene.clone();
 	scene.add( otherhalf );
@@ -285,12 +402,43 @@ function loadlights(){
 	gltf.scene.position.x -= xcorrection;
 	otherhalf.position.x += xcorrection;
 
-	outputtext.innerHTML = outputtext.innerHTML = "Loaded. Use left mouse button and move to rotate, right mouse button and move to pan, and mousewheel to zoom.";
-	//loadwheelblack();
+	//outputtext.innerHTML  = "Loaded. Use left mouse button and move to rotate, right mouse button and move to pan, and mousewheel to zoom.";
+	loadglass();
 	},function ( data ) {
 		
 		var percentage = Math.ceil(100*(data.loaded/1720320));
 		outputtext.innerHTML = "Loading Lights:" + percentage + "%";
+		
+	} );
+
+}
+
+function loadglass(){
+	//var loader = new THREE.GLTFLoader().setPath( modelpath );
+	loader.load( 'windscreen.glb', function ( gltf ) {
+	gltf.scene.traverse(function( child ) {
+        if ( child instanceof THREE.Mesh ) {
+            child.material = glassmaterial;
+            if(shadows){
+            	//child.castShadow = true;
+				//child.receiveShadow = true;
+			}
+        }
+    } )
+	scene.add( gltf.scene );
+	//var otherhalf = gltf.scene.clone();
+	//scene.add( otherhalf );
+	//otherhalf.scale.x = -1;
+	//var xcorrection =-0.002;
+	//gltf.scene.position.x -= xcorrection;
+	//otherhalf.position.x += xcorrection;
+
+	outputtext.innerHTML  = "Loaded. Use left mouse button and move to rotate, right mouse button and move to pan, and mousewheel to zoom.";
+	//loadwheelblack();
+	},function ( data ) {
+		
+		var percentage = Math.ceil(100*(data.loaded/1720320));
+		outputtext.innerHTML = "Loading Glass:" + percentage + "%";
 		
 	} );
 
