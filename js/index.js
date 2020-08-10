@@ -1,5 +1,7 @@
-var useDraco = false;
+var useDraco = true;
 var shadows =  true;
+var totalBytes = 0;
+//var currentBytes = 0;
 // SET UP RENDERER
 var scene = new THREE.Scene();
 var renderer = new THREE.WebGLRenderer({canvas:document.getElementById("canvas3d"),antialias:true});
@@ -39,7 +41,7 @@ if(shadows){
 	light2.shadow.camera.far = 500;
 };
 
-
+//addLights();
 
 
 function addLights(){
@@ -61,31 +63,40 @@ function addLight(col, x, y, z){
 	var sphere = new THREE.Mesh( geometry, material );
 	sphere.position.set(x, y, z);
 	//scene.add( sphere );
+	if(shadows){
+	newlightw1.castShadow = true;
+	newlightw1.shadow.mapSize.width = newlightw1.shadow.mapSize.height = 2048;
+	newlightw1.shadow.camera.near = 1;
+	newlightw1.shadow.camera.far = 500;
+
+};
 }
 
 
 animate();
 var outputtext = document.getElementById("overlay");
 var envloader = new THREE.CubeTextureLoader();
-outputtext.innerHTML  = "Loading environment textures";
+outputtext.innerHTML  = "Loading environment textures: 172KB";
+totalBytes = 172*1024;
 
 
-var loader, dloader;
+var loader, uloader, dloader, draco;
 
 
-
+uloader = new THREE.GLTFLoader().setPath( 'model_final_mix/' );
 
 if(useDraco){
-	var dloader = new THREE.DRACOLoader();
+	dloader = new THREE.GLTFLoader().setPath( 'model_final_mix/' );
+	var draco = new THREE.DRACOLoader();
 	
-	dloader.setDecoderConfig({ type: 'js' });
+	draco.setDecoderConfig({ type: 'js' });
 	//dloader.setDecoderPath( 'js/decoders/' );
-	dloader.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
-	loader = new THREE.GLTFLoader().setPath( 'model_draco/' );
-	loader.setDRACOLoader( dloader );
+	draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+	
+	dloader.setDRACOLoader( draco );
 	
 } else {
-	loader = new THREE.GLTFLoader().setPath( 'model/' );
+	uloader = new THREE.GLTFLoader().setPath( 'model_uncompressed/' );
 }
 
 
@@ -166,7 +177,7 @@ if(shadows){
 
 
 function loadbody(){
-	
+	if(useDraco){ loader=dloader} else {loader=uloader};
 	loader.load( 'paintbody.glb', function ( gltf ) {
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
@@ -187,15 +198,16 @@ function loadbody(){
 	loadchrome();
 	},function ( data ) {
 		
-		var percentage = Math.ceil(100*(data.loaded/1720320));
-		outputtext.innerHTML = "Loading Body:" + percentage + "%";
+		//var progress = totalBytes + data.loaded;
+
+		outputtext.innerHTML = "Loading Body: " + data.loaded + " Bytes";
 		
 	} );
 
 }
 
 function loadchrome(){
-	//var loader = new THREE.GLTFLoader().setPath( modelpath );
+	if(useDraco){ loader=dloader} else {loader=uloader};
 	loader.load( 'chrome.glb', function ( gltf ) {
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
@@ -216,15 +228,15 @@ function loadchrome(){
 	loadchromeasymmetric();
 	},function ( data ) {
 		
-		var percentage = Math.ceil(100*(data.loaded/1720320));
-		outputtext.innerHTML = "Loading Chrome:" + percentage + "%";
+		//var percentage = Math.ceil(100*(data.loaded/1720320));
+		outputtext.innerHTML = "Loading Chrome: " + data.loaded + " Bytes";
 		
 	} );
 
 }
 
 function loadchromeasymmetric(){
-	//var loader = new THREE.GLTFLoader().setPath( modelpath );
+	if(useDraco){ loader=dloader} else {loader=uloader};
 	loader.load( 'chrome_asymmetric.glb', function ( gltf ) {
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
@@ -241,16 +253,17 @@ function loadchromeasymmetric(){
 	loadfeaturesasymmetric();
 	},function ( data ) {
 		
-		var percentage = Math.ceil(100*(data.loaded/1720320));
-		outputtext.innerHTML = "Loading Asymmetric Chrome:" + percentage + "%";
+		//var percentage = Math.ceil(100*(data.loaded/1720320));
+		outputtext.innerHTML = "Loading Asymmetric Chrome: " + data.loaded + " Bytes";
 		
 	} );
 
 }
 
 function loadfeaturesasymmetric(){
-	//var loader = new THREE.GLTFLoader().setPath( modelpath );
-	loader.load( 'asymmetric_features.glb', function ( gltf ) {
+	// dont use compression because of textures
+	//if(useDraco){ loader=dloader} else {loader=uloader};
+	uloader.load( 'asymmetric_features.glb', function ( gltf ) {
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
             if(child.name.substring(0,7)=="blacken"){
@@ -269,22 +282,22 @@ function loadfeaturesasymmetric(){
 	loadblack();
 	},function ( data ) {
 		
-		var percentage = Math.ceil(100*(data.loaded/1720320));
-		outputtext.innerHTML = "Loading Asymmetric features:" + percentage + "%";
+		//var percentage = Math.ceil(100*(data.loaded/1720320));
+		outputtext.innerHTML = "Loading Asymmetric features: " + data.loaded + " Bytes";
 		
 	} );
 
 }
 
 function loadblack(){
-	//var loader = new THREE.GLTFLoader().setPath( modelpath );
+	if(useDraco){ loader=dloader} else {loader=uloader};
 	loader.load( 'black.glb', function ( gltf ) {
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
             child.material = blackmaterial;
                         if(shadows){
             	child.castShadow = true;
-				//child.receiveShadow = true;
+				child.receiveShadow = true;
 			}
         }
     } )
@@ -300,16 +313,17 @@ function loadblack(){
 	loadwheelblack();
 	},function ( data ) {
 		
-		var percentage = Math.ceil(100*(data.loaded/1720320));
-		outputtext.innerHTML = "Loading Black Features:" + percentage + "%";
+		//var percentage = Math.ceil(100*(data.loaded/1720320));
+		outputtext.innerHTML = "Loading Black Features: " + data.loaded + " Bytes";
 		
 	} );
 
 }
 
 function loadwheelblack(){
-	//var loader = new THREE.GLTFLoader().setPath( modelpath );
-	loader.load( 'wheel_black.glb', function ( gltf ) {
+	// dont use compression because of textures
+	//if(useDraco){ loader=dloader} else {loader=uloader};
+	uloader.load( 'wheel_black.glb', function ( gltf ) {
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
                         if(shadows){
@@ -332,26 +346,32 @@ function loadwheelblack(){
 	scene.add(front);
 	front.scale.z = -1;
 	front.position.z +=.28;
+	if(shadows){
+            	front.castShadow = true;
+				front.receiveShadow = true;
+				back.castShadow = true;
+				back.receiveShadow = true;
+			}
 
 	//outputtext.innerHTML = outputtext.innerHTML = "Loaded. Use left mouse button and move to rotate, right mouse button and move to pan, and mousewheel to zoom.";
 	loadwheelchrome();
 	},function ( data ) {
 		
-		var percentage = Math.ceil(100*(data.loaded/1720320));
-		outputtext.innerHTML = "Loading Black Wheel" + percentage + "%";
+		//var percentage = Math.ceil(100*(data.loaded/1720320));
+		outputtext.innerHTML = "Loading Black Wheel: " + data.loaded + " Bytes";
 		
 	} );
 
 }
 
 function loadwheelchrome(){
-	//var loader = new THREE.GLTFLoader().setPath( modelpath );
+	if(useDraco){ loader=dloader} else {loader=uloader};
 	loader.load( 'wheel_chrome.glb', function ( gltf ) {
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
             child.material = chromematerial;
                         if(shadows){
-            	//child.castShadow = true;
+            	child.castShadow = true;
 				child.receiveShadow = true;
 			}
         }
@@ -375,21 +395,22 @@ function loadwheelchrome(){
 	loadlights();
 	},function ( data ) {
 		
-		var percentage = Math.ceil(100*(data.loaded/1720320));
-		outputtext.innerHTML = "Loading Chrome Wheel" + percentage + "%";
+		//var percentage = Math.ceil(100*(data.loaded/1720320));
+		outputtext.innerHTML = "Loading Chrome Wheel: " + data.loaded + " Bytes";
 		
 	} );
 
 }
 
 function loadlights(){
-	//var loader = new THREE.GLTFLoader().setPath( modelpath );
-	loader.load( 'lights.glb', function ( gltf ) {
+	// dont use compression because of textures
+	//if(useDraco){ loader=dloader} else {loader=uloader};
+	uloader.load( 'lights.glb', function ( gltf ) {
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
 
             if(shadows){
-            	//child.castShadow = true;
+            	child.castShadow = true;
 				child.receiveShadow = true;
 			}
         }
@@ -406,15 +427,15 @@ function loadlights(){
 	loadglass();
 	},function ( data ) {
 		
-		var percentage = Math.ceil(100*(data.loaded/1720320));
-		outputtext.innerHTML = "Loading Lights:" + percentage + "%";
+		//var percentage = Math.ceil(100*(data.loaded/1720320));
+		outputtext.innerHTML = "Loading Lights: " + data.loaded + " Bytes";
 		
 	} );
 
 }
 
 function loadglass(){
-	//var loader = new THREE.GLTFLoader().setPath( modelpath );
+	if(useDraco){ loader=dloader} else {loader=uloader};
 	loader.load( 'windscreen.glb', function ( gltf ) {
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
@@ -437,8 +458,8 @@ function loadglass(){
 	//loadwheelblack();
 	},function ( data ) {
 		
-		var percentage = Math.ceil(100*(data.loaded/1720320));
-		outputtext.innerHTML = "Loading Glass:" + percentage + "%";
+		//var percentage = Math.ceil(100*(data.loaded/1720320));
+		outputtext.innerHTML = "Loading Glass: " + data.loaded + " Bytes";
 		
 	} );
 
