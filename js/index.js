@@ -1,6 +1,8 @@
 var useDraco = true;
 var shadows =  true;
 var totalBytes = 0;
+var wheels = [];
+var xyzww= false;
 //var currentBytes = 0;
 // SET UP RENDERER
 var scene = new THREE.Scene();
@@ -326,6 +328,8 @@ function loadwheelblack(){
 	uloader.load( 'wheel_black.glb', function ( gltf ) {
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
+        	console.log("TYRE PART NAME: " + child.name);
+        	//wheels.push(child);
                         if(shadows){
             	child.castShadow = true;
 				child.receiveShadow = true;
@@ -344,8 +348,8 @@ function loadwheelblack(){
 
 	var front = back.clone();
 	scene.add(front);
-	front.scale.z = -1;
-	front.position.z +=.28;
+	//front.scale.z = -1;
+	front.position.z += 2.4;
 	if(shadows){
             	front.castShadow = true;
 				front.receiveShadow = true;
@@ -369,6 +373,8 @@ function loadwheelchrome(){
 	loader.load( 'wheel_chrome.glb', function ( gltf ) {
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
+        	//wheels.push(child);
+        	console.log("HUBCAP PART NAME: " + child.name);
             child.material = chromematerial;
                         if(shadows){
             	child.castShadow = true;
@@ -388,8 +394,8 @@ function loadwheelchrome(){
 
 	var front = back.clone();
 	scene.add(front);
-	front.scale.z = -1;
-	front.position.z +=.28;
+	//front.scale.z = -1;
+	front.position.z += 2.4;
 
 	//outputtext.innerHTML = outputtext.innerHTML = "Loaded. Use left mouse button and move to rotate, right mouse button and move to pan, and mousewheel to zoom.";
 	loadlights();
@@ -454,8 +460,8 @@ function loadglass(){
 	//gltf.scene.position.x -= xcorrection;
 	//otherhalf.position.x += xcorrection;
 
-	outputtext.innerHTML  = "Loaded. Use left mouse button and move to rotate, right mouse button and move to pan, and mousewheel to zoom.";
-	//loadwheelblack();
+
+	finishedLoading();
 	},function ( data ) {
 		
 		//var percentage = Math.ceil(100*(data.loaded/1720320));
@@ -465,8 +471,29 @@ function loadglass(){
 
 }
 
+function finishedLoading(){
+	outputtext.innerHTML  = "Loaded. Use left mouse button and move to rotate, right mouse button and move to pan, and mousewheel to zoom.";
+	xyzww = true;
+	scene.traverse(function( child ) {
+        if ( child instanceof THREE.Mesh ) {
+        	if(child.name=="wheel"){
+        		wheels.push(child);
+        	}
+        	
+        }
+    } )
+}
+
 
 function animate(){
     requestAnimationFrame(() => { animate() } );
+    console.log("a");
+    if(xyzww){
+    	console.log("b");
+    	for (var i = wheels.length - 1; i >= 0; i--) {
+    		console.log("c");
+    		wheels[i].rotation.x += 0.1;
+    	}
+    }
     renderer.render(scene, camera);
 }
