@@ -3,6 +3,23 @@ var shadows =  true;
 var totalBytes = 0;
 var wheels = [];
 var xyzww= false;
+
+var vz = 0.1;
+var vo = 0;
+var vmx = 1;
+var vmn = -vmx;
+var moving = false;
+
+var rotating = false;
+
+
+var vy = 0;
+var ym = 0;
+var yo = 0;
+
+var car = new THREE.Object3D();
+var wheelcontainer = new THREE.Object3D();
+var paintjob = new THREE.Object3D();
 //var currentBytes = 0;
 // SET UP RENDERER
 var scene = new THREE.Scene();
@@ -21,6 +38,11 @@ scene.add(camera);
 camera.position.set(0, 0, 100);
 camera.lookAt(scene.position);
 var orbitcontrols = new THREE.OrbitControls(camera, document.getElementById("canvas3d"));
+scene.add(car);
+car.add(wheelcontainer);
+car.add(paintjob);
+
+
 
 // SET UP LIGHTS
 //var light = new THREE.AmbientLight("#ffffff", 1);
@@ -59,7 +81,7 @@ function addLights(){
 function addLight(col, x, y, z){
 	var newlightw1 = new THREE.PointLight(col, 10, 20, 2);
 	newlightw1.position.set(x, y, z);
-	scene.add(newlightw1);
+	car.add(newlightw1);
 	var geometry = new THREE.SphereGeometry( 0.05, 10, 10 );
 	var material = new THREE.MeshBasicMaterial( {color: col} );
 	var sphere = new THREE.Mesh( geometry, material );
@@ -76,7 +98,8 @@ function addLight(col, x, y, z){
 
 
 animate();
-var outputtext = document.getElementById("overlay");
+var outputtext = document.getElementById("overlay_left");
+var buttons = document.getElementById("overlay_right");
 var envloader = new THREE.CubeTextureLoader();
 outputtext.innerHTML  = "Loading environment textures: 172KB";
 totalBytes = 172*1024;
@@ -117,7 +140,7 @@ var paintmaterial = new THREE.MeshPhysicalMaterial( {
 			envMapIntensity :0.5,
 			reflectivity : 0.8,
 			metalness: 1,
-			emissive: "#010000",
+			emissive: "#000000",
 			color: "#611212",
 			roughness : 0.1
 
@@ -166,17 +189,37 @@ var blackmaterial = new THREE.MeshPhysicalMaterial( {
 
 
 // SET UP GROUND
-var ggeometry = new THREE.SphereGeometry( 100, 100, 100 );
+var ggeometry = new THREE.BoxGeometry( 100, 100, 100 );
 var gmaterial = blackmaterial;//new THREE.MeshBasicMaterial( {color: "#ffffff"} );
-var gsphere = new THREE.Mesh( ggeometry, gmaterial );
-gsphere.position.set(0, -100.5, 0);
-scene.add( gsphere );
+var gbox = new THREE.Mesh( ggeometry, gmaterial );
+gbox.position.set(0, -50.5, 0);
+scene.add( gbox );
 if(shadows){
 	//gsphere.castShadow = true;
-	gsphere.receiveShadow = true;
+	gbox.receiveShadow = true;
 };
 
+function changecolour(col){
+	var newpaintmaterial = new THREE.MeshPhysicalMaterial( {
+			clearcoat:0.7,
+			clearcoatRoughness:0.1,
+			side: THREE.DoubleSide,
+			envMap : textureCube,
+			envMapIntensity :0.5,
+			reflectivity : 0.8,
+			metalness: 1,
+			emissive: "#000000",
+			color: col,
+			roughness : 0.1
 
+		} );
+	paintjob.traverse(function( child ) {
+        if ( child instanceof THREE.Mesh ) {
+            child.material = newpaintmaterial;
+        }
+    } )
+
+}
 
 function loadbody(){
 	if(useDraco){ loader=dloader} else {loader=uloader};
@@ -190,9 +233,9 @@ function loadbody(){
 			}
         }
     } )
-	scene.add( gltf.scene );
+	paintjob.add( gltf.scene );
 	var otherhalf = gltf.scene.clone();
-	scene.add( otherhalf );
+	paintjob.add( otherhalf );
 	otherhalf.scale.x = -1;
 	var xcorrection =0.001;
 	gltf.scene.position.x -= xcorrection;
@@ -220,9 +263,9 @@ function loadchrome(){
 			}
         }
     } )
-	scene.add( gltf.scene );
+	car.add( gltf.scene );
 	var otherhalf = gltf.scene.clone();
-	scene.add( otherhalf );
+	car.add( otherhalf );
 	otherhalf.scale.x = -1;
 	var xcorrection =0;
 	gltf.scene.position.x -= xcorrection;
@@ -249,7 +292,7 @@ function loadchromeasymmetric(){
 			}
         }
     } )
-	scene.add( gltf.scene );
+	car.add( gltf.scene );
 
 
 	loadfeaturesasymmetric();
@@ -278,7 +321,7 @@ function loadfeaturesasymmetric(){
         }
     } )
 	
-	scene.add( gltf.scene );
+	car.add( gltf.scene );
 
 	
 	loadblack();
@@ -303,9 +346,9 @@ function loadblack(){
 			}
         }
     } )
-	scene.add( gltf.scene );
+	car.add( gltf.scene );
 	var otherhalf = gltf.scene.clone();
-	scene.add( otherhalf );
+	car.add( otherhalf );
 	otherhalf.scale.x = -1;
 	var xcorrection =-0.002;
 	gltf.scene.position.x -= xcorrection;
@@ -340,14 +383,14 @@ function loadwheelblack(){
 	back.add( gltf.scene );
 	var otherhalf = gltf.scene.clone();
 	back.add( otherhalf );
-	scene.add(back);
+	wheelcontainer.add(back);
 	otherhalf.scale.x = -1;
 	var xcorrection =-0.002;
 	gltf.scene.position.x -= xcorrection;
 	otherhalf.position.x += xcorrection;
 
 	var front = back.clone();
-	scene.add(front);
+	wheelcontainer.add(front);
 	//front.scale.z = -1;
 	front.position.z += 2.4;
 	if(shadows){
@@ -386,14 +429,14 @@ function loadwheelchrome(){
 	back.add( gltf.scene );
 	var otherhalf = gltf.scene.clone();
 	back.add( otherhalf );
-	scene.add(back);
+	wheelcontainer.add(back);
 	otherhalf.scale.x = -1;
 	var xcorrection =-0.002;
 	gltf.scene.position.x -= xcorrection;
 	otherhalf.position.x += xcorrection;
 
 	var front = back.clone();
-	scene.add(front);
+	wheelcontainer.add(front);
 	//front.scale.z = -1;
 	front.position.z += 2.4;
 
@@ -421,9 +464,9 @@ function loadlights(){
 			}
         }
     } )
-	scene.add( gltf.scene );
+	car.add( gltf.scene );
 	var otherhalf = gltf.scene.clone();
-	scene.add( otherhalf );
+	car.add( otherhalf );
 	otherhalf.scale.x = -1;
 	var xcorrection =-0.002;
 	gltf.scene.position.x -= xcorrection;
@@ -452,7 +495,7 @@ function loadglass(){
 			}
         }
     } )
-	scene.add( gltf.scene );
+	car.add( gltf.scene );
 	//var otherhalf = gltf.scene.clone();
 	//scene.add( otherhalf );
 	//otherhalf.scale.x = -1;
@@ -472,11 +515,18 @@ function loadglass(){
 }
 
 function finishedLoading(){
-	outputtext.innerHTML  = "Loaded. Use left mouse button and move to rotate, right mouse button and move to pan, and mousewheel to zoom.";
+	outputtext.innerHTML  = "Finished Loading.<br/>Use left mouse button and move to rotate,<br/>right mouse button and move to pan,<br/>and mousewheel to zoom.<br/>Also use buttons on the right<br/>to move or jump the car,<br/>and rotate around it automatically.";//<br/>and to change its paint colour.";
+	buttons.innerHTML = "<button type='button' id='button360'>360</button><br/><button type='button' id='buttonmove'>Move</button><br/><button type='button' id='buttonjump'>Jump</button><br/>Colours:<br/><button type='button' id='buttonoriginal'>Original</button><br/><button type='button' id='buttonblack'>Black</button><br/><button type='button' id='buttonblue'>Blue</button>";
 	xyzww = true;
-	scene.traverse(function( child ) {
+	document.getElementById("buttonmove").onclick = function () { if(moving){moving=false}else{moving=true} };
+	document.getElementById("button360").onclick = function () { if(rotating){rotating=false;orbitcontrols.autoRotate=false;}else{rotating=true; orbitcontrols.autoRotate=true;} };
+	document.getElementById("buttonjump").onclick = function () { vy=0.1};
+	document.getElementById("buttonblack").onclick = function () { changecolour("#000000")};
+	document.getElementById("buttonblue").onclick = function () { changecolour("#1122ff")};
+	document.getElementById("buttonoriginal").onclick = function () { changecolour("#611212")};
+	car.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
-        	if(child.name=="wheel"){
+        	if(child.name.substring(0,5)=="wheel"){
         		wheels.push(child);
         	}
         	
@@ -487,12 +537,38 @@ function finishedLoading(){
 
 function animate(){
     requestAnimationFrame(() => { animate() } );
-    console.log("a");
+    //console.log("a");
     if(xyzww){
-    	console.log("b");
-    	for (var i = wheels.length - 1; i >= 0; i--) {
-    		console.log("c");
-    		wheels[i].rotation.x += 0.1;
+    	//console.log("b");
+    	var oldyposition = car.position.y;
+    	car.position.y += vy;
+    	
+    	if (car.position.y<yo){
+    		car.position.y=yo;
+    		vy = vy *-0.3;
+    	} else if (car.position.y>yo+0.01){
+    		vy-=0.012;
+    	} else{
+    		vy=0;
+    		car.position.y=yo;
+    	}
+
+    	var dy = oldyposition-car.position.y;
+    	wheelcontainer.position.y = dy;
+    	
+    	if(rotating){
+    		orbitcontrols.update();
+
+    	}
+    	if(moving){
+
+    		car.position.z += vz;
+    		if(car.position.z>0){vz-=0.001}
+    		if(car.position.z<0){vz+=0.001}
+    		for (var i = wheels.length - 1; i >= 0; i--) {
+    			//console.log("c");
+    			wheels[i].rotation.x = car.position.z*-1.7;
+    		}
     	}
     }
     renderer.render(scene, camera);

@@ -8,7 +8,23 @@ body {
 
 #overlay {
 	position: absolute;
-	left: 0px;
 	top: 0px;
+	left:0px;
 	z-index: 1;
+	width:100%;
+}
+
+#overlay_left {
+	position: absolute;
+	left: 0px;
+
+}
+
+#overlay_right {
+	position: absolute;
+	right:0px;
+}
+
+button {
+	width:60px;
 }
