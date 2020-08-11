@@ -21,6 +21,7 @@ if (shadows) {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; //THREE.BasicShadowMap;
 }
+
 // SET UP SCENE
 scene.background = new THREE.Color( "#aaaaaa");
 var camera = new THREE.PerspectiveCamera(30, window.innerWidth / window.innerHeight, 1, 1000);
@@ -31,6 +32,11 @@ var orbitcontrols = new THREE.OrbitControls(camera, document.getElementById("can
 scene.add(car);
 car.add(wheelcontainer);
 car.add(paintjob);
+
+// SET UP RESIZE EVENT
+var tanFOV = Math.tan((Math.PI / 360) * camera.fov);
+var windowHeight = window.innerHeight;
+window.addEventListener('resize', onWindowResize, false);
 
 // SET UP LIGHTS
 var light1 = new THREE.DirectionalLight("#999988",2);
@@ -83,18 +89,6 @@ scene.add( gbox );
 if(shadows){
 	gbox.receiveShadow = true;
 };
-
-// CHANGE PAINT JOB
-function changecolour(col){
-	var newpaintmaterial = new THREE.MeshPhysicalMaterial( {clearcoat:0.7,clearcoatRoughness:0.1,side: THREE.DoubleSide,envMap : textureCube,envMapIntensity :0.5,reflectivity : 0.8,metalness: 1,emissive: "#000000",color: col,roughness : 0.1} );
-	paintjob.traverse(
-		function( child ) {
-        	if ( child instanceof THREE.Mesh ) {
-            	child.material = newpaintmaterial;
-        	}
-    	}
-    )
-}
 
 // LOADING AND COMPOSITION
 var components = [ 
@@ -213,4 +207,26 @@ function animate(){
 
     }
     renderer.render(scene, camera);
+}
+
+// CHANGE PAINT JOB
+function changecolour(col){
+	var newpaintmaterial = new THREE.MeshPhysicalMaterial( {clearcoat:0.7,clearcoatRoughness:0.1,side: THREE.DoubleSide,envMap : textureCube,envMapIntensity :0.5,reflectivity : 0.8,metalness: 1,emissive: "#000000",color: col,roughness : 0.1} );
+	paintjob.traverse(
+		function( child ) {
+        	if ( child instanceof THREE.Mesh ) {
+            	child.material = newpaintmaterial;
+        	}
+    	}
+    )
+}
+
+// RESIZE VIEWPORT TO WINDOW
+function onWindowResize(event) {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.fov = (360 / Math.PI) * Math.atan(tanFOV * (window.innerHeight / windowHeight));
+        camera.updateProjectionMatrix();
+        camera.lookAt(scene.position);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.render(scene, camera);
 }
