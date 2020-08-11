@@ -1,17 +1,12 @@
-var useDraco = true; // alwys true, now components are mixed
 var shadows =  true; // dynamic shadows
 var wheels = []; // list of parts to rotate
 var finished= false; // loading finished 
-
 var vz = 0.1; // lateral velocity
 var zo = 0; // lateral start position
 var moving = false; // is moving back and forth
-
 var rotating = false; // orbtocontrols auto rotate
-
 var vy = 0; // vertical velocity
 var yo = 0; // vertical start position
-
 var car = new THREE.Object3D();  // container for entire car
 var wheelcontainer = new THREE.Object3D(); // container for wheels
 var paintjob = new THREE.Object3D(); // container for paint work only
@@ -45,14 +40,10 @@ light2.position.set(-100, 200,200);
 scene.add(light2);
 scene.add(light1);
 if(shadows){
-	light1.castShadow = true;
-	light2.castShadow = true;
-	light1.shadow.mapSize.width = light1.shadow.mapSize.height = 2048;
-	light1.shadow.camera.near = 1;
-	light1.shadow.camera.far = 500;
-	light2.shadow.mapSize.width = light2.shadow.mapSize.height = 2048;
-	light2.shadow.camera.near = 1;
-	light2.shadow.camera.far = 500;
+	light1.castShadow = light2.castShadow = true;
+	light1.shadow.mapSize.width = light1.shadow.mapSize.height = light2.shadow.mapSize.width = light2.shadow.mapSize.height = 2048;
+	light1.shadow.camera.near = light2.shadow.camera.near = 1;
+	light1.shadow.camera.far = light2.shadow.camera.far = 500;
 };
 
 animate(); //START RENDERER BEFORE LOADING
@@ -64,69 +55,24 @@ var envloader = new THREE.CubeTextureLoader();
 outputtext.innerHTML  = "Loading environment textures: 172KB";
 
 // CONFIGURE LOADER
-var loader, uloader, dloader, draco;
-uloader = new THREE.GLTFLoader().setPath( 'model_final_mix/' );
-if(useDraco){
-	dloader = new THREE.GLTFLoader().setPath( 'model_final_mix/' );
-	var draco = new THREE.DRACOLoader();
-	//draco.setDecoderConfig({ type: 'js' });
-	draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
-	dloader.setDRACOLoader( draco );
-} else {
-	uloader = new THREE.GLTFLoader().setPath( 'model_uncompressed/' );
-}
+var loader, uloader, dloader, draco, path;
+path = 'model_final_mix/';
+uloader = new THREE.GLTFLoader().setPath( path );
+dloader = new THREE.GLTFLoader().setPath( path );
+var draco = new THREE.DRACOLoader();
+//draco.setDecoderConfig({ type: 'js' });
+draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
+dloader.setDRACOLoader( draco );
+var currentComponent = -1;
 
 // MATERIALS
 
-var textureCube = this.envloader.load( ["textures/px.jpg", "textures/nx.jpg", "textures/py.jpg", "textures/ny.jpg", "textures/pz.jpg", "textures/nz.jpg"], () => { loadbody()} );
+var textureCube = this.envloader.load( ["textures/px.jpg", "textures/nx.jpg", "textures/py.jpg", "textures/ny.jpg", "textures/pz.jpg", "textures/nz.jpg"], () => { nextComponent()} );
 
-var paintmaterial = new THREE.MeshPhysicalMaterial( {
-			clearcoat:0.7,
-			clearcoatRoughness:0.1,
-			side: THREE.DoubleSide,
-			envMap : textureCube,
-			envMapIntensity :0.5,
-			reflectivity : 0.8,
-			metalness: 1,
-			emissive: "#000000",
-			color: "#611212",
-			roughness : 0.1
-
-		} );
-var chromematerial = new THREE.MeshPhysicalMaterial( {
-			clearcoat:0,
-			side: THREE.DoubleSide,
-			envMap : textureCube,
-			envMapIntensity :3,
-			reflectivity : 1,
-			metalness: 1,
-			color: "#111111",
-			emissive: "#000000",
-			roughness : 0
-
-		} );
-var glassmaterial = new THREE.MeshPhysicalMaterial( {
-			clearcoat:0,
-			transparent:true,
-			opacity:0.4,
-			envMap : textureCube,
-			envMapIntensity :3,
-			reflectivity : 1,
-			metalness: 0,
-			color: "#000000",
-			emissive: "#000000",
-			roughness : 0
-
-		} );
-var blackmaterial = new THREE.MeshPhysicalMaterial( {
-			clearcoat:0.3,
-			clearcoatRoughness:0.3,
-			side: THREE.DoubleSide,
-			reflectivity : 0.1,
-			metalness: 0,
-			color: "#030303",
-			roughness : 0.3
-		} );
+var paintmaterial = new THREE.MeshPhysicalMaterial( {clearcoat:0.7,clearcoatRoughness:0.1,side: THREE.DoubleSide,envMap : textureCube,envMapIntensity :0.5,reflectivity : 0.8,metalness: 1,emissive: "#000000",color: "#611212",roughness : 0.1} );
+var chromematerial = new THREE.MeshPhysicalMaterial( {clearcoat:0,side: THREE.DoubleSide,envMap : textureCube,envMapIntensity :3,reflectivity : 1,metalness: 1,color: "#111111",emissive: "#000000",roughness : 0  } );
+var glassmaterial = new THREE.MeshPhysicalMaterial( {clearcoat:0,transparent:true,opacity:0.4,envMap : textureCube,envMapIntensity :3,reflectivity : 1,metalness: 0,color: "#000000",emissive: "#000000",roughness : 0 } );
+var blackmaterial = new THREE.MeshPhysicalMaterial( {clearcoat:0.3,clearcoatRoughness:0.3,side: THREE.DoubleSide,reflectivity : 0.1,metalness: 0,color: "#030303",roughness : 0.3} );
 
 // SET UP GROUND
 var ggeometry = new THREE.BoxGeometry( 100, 100, 100 );
@@ -140,254 +86,84 @@ if(shadows){
 
 // CHANGE PAINT JOB
 function changecolour(col){
-	var newpaintmaterial = new THREE.MeshPhysicalMaterial( {
-			clearcoat:0.7,
-			clearcoatRoughness:0.1,
-			side: THREE.DoubleSide,
-			envMap : textureCube,
-			envMapIntensity :0.5,
-			reflectivity : 0.8,
-			metalness: 1,
-			emissive: "#000000",
-			color: col,
-			roughness : 0.1
-
-		} );
-	paintjob.traverse(function( child ) {
-        if ( child instanceof THREE.Mesh ) {
-            child.material = newpaintmaterial;
-        }
-    } )
-
+	var newpaintmaterial = new THREE.MeshPhysicalMaterial( {clearcoat:0.7,clearcoatRoughness:0.1,side: THREE.DoubleSide,envMap : textureCube,envMapIntensity :0.5,reflectivity : 0.8,metalness: 1,emissive: "#000000",color: col,roughness : 0.1} );
+	paintjob.traverse(
+		function( child ) {
+        	if ( child instanceof THREE.Mesh ) {
+            	child.material = newpaintmaterial;
+        	}
+    	}
+    )
 }
 
 // LOADING AND COMPOSITION
+var components = [ 
+	{path:'paintbody.glb',          useDraco:true, castShadow:true, receiveShadow:false,material:paintmaterial, mirrorz:true, xshift:0.001, mirrorx:false,zshift:0,  parent:paintjob      },
+	{path:'chrome.glb',             useDraco:true, castShadow:true, receiveShadow:true, material:chromematerial,mirrorz:true, xshift:0,     mirrorx:false,zshift:0,  parent:car           },
+	{path:'chrome_asymmetric.glb',  useDraco:true, castShadow:true, receiveShadow:true, material:chromematerial,mirrorz:false,xshift:0,     mirrorx:false,zshift:0,  parent:car           },
+	{path:'asymmetric_features.glb',useDraco:false,castShadow:true, receiveShadow:false,material:false,         mirrorz:false,xshift:0,     mirrorx:false,zshift:0,  parent:car           },
+	{path:'black.glb',              useDraco:true, castShadow:true, receiveShadow:true, material:blackmaterial, mirrorz:true, xshift:-0.002,mirrorx:false,zshift:0,  parent:car           },
+	{path:'wheel_black.glb',        useDraco:false,castShadow:true, receiveShadow:true, material:false,         mirrorz:true, xshift:-0.002,mirrorx:true, zshift:2.4,parent:wheelcontainer},
+	{path:'wheel_chrome.glb',       useDraco:true, castShadow:true, receiveShadow:true, material:chromematerial,mirrorz:true, xshift:-0.002,mirrorx:true, zshift:2.4,parent:wheelcontainer},
+	{path:'lights.glb',             useDraco:false,castShadow:true, receiveShadow:true, material:false,         mirrorz:true, xshift:-0.002,mirrorx:false,zshift:0,  parent:car           },
+	{path:'windscreen.glb',         useDraco:true, castShadow:false,receiveShadow:false,material:glassmaterial, mirrorz:false,xshift:0,  	 mirrorx:false,zshift:0,  parent:car           }
+];
 
-function loadbody(){
-	if(useDraco){ loader=dloader} else {loader=uloader};
-	loader.load( 'paintbody.glb', function ( gltf ) {
-	gltf.scene.traverse(function( child ) {
-        if ( child instanceof THREE.Mesh ) {
-            child.material = paintmaterial;
-            if(shadows){
-            	child.castShadow = true;
-			}
-        }
-    } )
-	paintjob.add( gltf.scene );
-	var otherhalf = gltf.scene.clone();
-	paintjob.add( otherhalf );
-	otherhalf.scale.x = -1;
-	var xcorrection =0.001;
-	gltf.scene.position.x -= xcorrection;
-	otherhalf.position.x += xcorrection;
-	loadchrome();
-	},function ( data ) {
-		outputtext.innerHTML = "Loading Body: " + data.loaded + " Bytes";
-	} );
+function loadComponent(component){
+	if(component.useDraco){ loader=dloader} else {loader=uloader};
+	loader.load(
+		component.path,
+		function ( gltf ) {
+			gltf.scene.traverse(
+				function( child ) {
+       	 			if ( child instanceof THREE.Mesh ) {
+       	 			    if(component.material){child.material = component.material};
+       	 			    if(child.name.substring(0,7)=="blacken"){child.material = blackmaterial;};
+       	 			    if(shadows){
+       	 			    	child.castShadow = component.castShadow;
+       	 			    	child.receiveShadow = component.receiveShadow;
+						}
+       	 			}
+    			}
+    		)
+    		component.parent.add(gltf.scene);
 
+    		if(component.mirrorz){
+    			var otherhalf = gltf.scene.clone();
+				component.parent.add( otherhalf );
+				otherhalf.scale.x = -1;
+				gltf.scene.position.x -= component.xshift;
+				otherhalf.position.x += component.xshift;
+
+				if(component.mirrorx){
+    				var back = new THREE.Object3D();
+					back.add( gltf.scene );
+					back.add( otherhalf );
+					component.parent.add(back);
+					var front = back.clone();
+					component.parent.add(front);
+					front.position.z += component.zshift;
+					if(shadows){
+            			front.castShadow = component.castShadow;
+						front.receiveShadow = component.receiveShadow;
+						back.castShadow = component.castShadow;
+						back.receiveShadow = component.receiveShadow;
+					}
+    			}
+    		}
+    		nextComponent();
+    	},
+    	function ( data ) { outputtext.innerHTML = "Loading " + component.path + " " + data.loaded + " Bytes";}
+    );
 }
 
-function loadchrome(){
-	if(useDraco){ loader=dloader} else {loader=uloader};
-	loader.load( 'chrome.glb', function ( gltf ) {
-	gltf.scene.traverse(function( child ) {
-        if ( child instanceof THREE.Mesh ) {
-            child.material = chromematerial;
-            if(shadows){
-            	child.castShadow = true;
-				child.receiveShadow = true;
-			}
-        }
-    } )
-	car.add( gltf.scene );
-	var otherhalf = gltf.scene.clone();
-	car.add( otherhalf );
-	otherhalf.scale.x = -1;
-	var xcorrection =0;
-	gltf.scene.position.x -= xcorrection;
-	otherhalf.position.x += xcorrection;
-	loadchromeasymmetric();
-	},function ( data ) {
-		outputtext.innerHTML = "Loading Chrome: " + data.loaded + " Bytes";
-		
-	} );
-
-}
-
-function loadchromeasymmetric(){
-	if(useDraco){ loader=dloader} else {loader=uloader};
-	loader.load( 'chrome_asymmetric.glb', function ( gltf ) {
-	gltf.scene.traverse(function( child ) {
-        if ( child instanceof THREE.Mesh ) {
-            child.material = chromematerial;
-            if(shadows){
-            	child.castShadow = true;
-				child.receiveShadow = true;
-			}
-        }
-    } )
-	car.add( gltf.scene );
-	loadfeaturesasymmetric();
-	},function ( data ) {
-		outputtext.innerHTML = "Loading Asymmetric Chrome: " + data.loaded + " Bytes";
-		
-	} );
-
-}
-
-function loadfeaturesasymmetric(){
-	uloader.load( 'asymmetric_features.glb', function ( gltf ) {
-	gltf.scene.traverse(function( child ) {
-        if ( child instanceof THREE.Mesh ) {
-            if(child.name.substring(0,7)=="blacken"){
-            	child.material = blackmaterial;
-            };
-            if(shadows){
-            	child.castShadow = true;
-			}
-        }
-    } )
-	car.add( gltf.scene );
-	loadblack();
-	},function ( data ) {
-		outputtext.innerHTML = "Loading Asymmetric features: " + data.loaded + " Bytes";
-	} );
-
-}
-
-function loadblack(){
-	if(useDraco){ loader=dloader} else {loader=uloader};
-	loader.load( 'black.glb', function ( gltf ) {
-	gltf.scene.traverse(function( child ) {
-        if ( child instanceof THREE.Mesh ) {
-            child.material = blackmaterial;
-            if(shadows){
-            	child.castShadow = true;
-				child.receiveShadow = true;
-			}
-        }
-    } )
-	car.add( gltf.scene );
-	var otherhalf = gltf.scene.clone();
-	car.add( otherhalf );
-	otherhalf.scale.x = -1;
-	var xcorrection =-0.002;
-	gltf.scene.position.x -= xcorrection;
-	otherhalf.position.x += xcorrection;
-	loadwheelblack();
-	},function ( data ) {
-		outputtext.innerHTML = "Loading Black Features: " + data.loaded + " Bytes";
-	} );
-
-}
-
-function loadwheelblack(){
-
-	uloader.load( 'wheel_black.glb', function ( gltf ) {
-	gltf.scene.traverse(function( child ) {
-        if ( child instanceof THREE.Mesh ) {
-                        if(shadows){
-            	child.castShadow = true;
-				child.receiveShadow = true;
-			}
-        }
-    } )
-    var back = new THREE.Object3D();
-	back.add( gltf.scene );
-	var otherhalf = gltf.scene.clone();
-	back.add( otherhalf );
-	wheelcontainer.add(back);
-	otherhalf.scale.x = -1;
-	var xcorrection =-0.002;
-	gltf.scene.position.x -= xcorrection;
-	otherhalf.position.x += xcorrection;
-	var front = back.clone();
-	wheelcontainer.add(front);
-	front.position.z += 2.4;
-	if(shadows){
-            	front.castShadow = true;
-				front.receiveShadow = true;
-				back.castShadow = true;
-				back.receiveShadow = true;
-			}
-	loadwheelchrome();
-	},function ( data ) {
-		outputtext.innerHTML = "Loading Black Wheel: " + data.loaded + " Bytes";
-	} );
-
-}
-
-function loadwheelchrome(){
-	if(useDraco){ loader=dloader} else {loader=uloader};
-	loader.load( 'wheel_chrome.glb', function ( gltf ) {
-	gltf.scene.traverse(function( child ) {
-        if ( child instanceof THREE.Mesh ) {
-            child.material = chromematerial;
-                        if(shadows){
-            	child.castShadow = true;
-				child.receiveShadow = true;
-			}
-        }
-    } )
-    var back = new THREE.Object3D();
-	back.add( gltf.scene );
-	var otherhalf = gltf.scene.clone();
-	back.add( otherhalf );
-	wheelcontainer.add(back);
-	otherhalf.scale.x = -1;
-	var xcorrection =-0.002;
-	gltf.scene.position.x -= xcorrection;
-	otherhalf.position.x += xcorrection;
-	var front = back.clone();
-	wheelcontainer.add(front);
-	front.position.z += 2.4;
-	loadlights();
-	},function ( data ) {
-		outputtext.innerHTML = "Loading Chrome Wheel: " + data.loaded + " Bytes";
-		
-	} );
-
-}
-
-function loadlights(){
-	uloader.load( 'lights.glb', function ( gltf ) {
-	gltf.scene.traverse(function( child ) {
-        if ( child instanceof THREE.Mesh ) {
-
-            if(shadows){
-            	child.castShadow = true;
-				child.receiveShadow = true;
-			}
-        }
-    } )
-	car.add( gltf.scene );
-	var otherhalf = gltf.scene.clone();
-	car.add( otherhalf );
-	otherhalf.scale.x = -1;
-	var xcorrection =-0.002;
-	gltf.scene.position.x -= xcorrection;
-	otherhalf.position.x += xcorrection;
-	loadglass();
-	},function ( data ) {
-		outputtext.innerHTML = "Loading Lights: " + data.loaded + " Bytes";
-	} );
-
-}
-
-function loadglass(){
-	if(useDraco){ loader=dloader} else {loader=uloader};
-	loader.load( 'windscreen.glb', function ( gltf ) {
-	gltf.scene.traverse(function( child ) {
-        if ( child instanceof THREE.Mesh ) {
-            child.material = glassmaterial;
-        }
-    } )
-	car.add( gltf.scene );
-	finishedLoading();
-	},function ( data ) {
-		outputtext.innerHTML = "Loading Glass: " + data.loaded + " Bytes";
-	} );
+function nextComponent(){
+	currentComponent+=1;
+	if(currentComponent<9){
+		loadComponent(components[currentComponent]);
+	} else {
+		finishedLoading();
+	}
 }
 
 function finishedLoading(){
@@ -414,30 +190,17 @@ function finishedLoading(){
     } )
 }
 
-
 function animate(){
     requestAnimationFrame(() => { animate() } );
     if(finished){
     	// JUMPING ANIMATION
     	var oldyposition = car.position.y;
-    	car.position.y += vy;
-    	
-    	if (car.position.y<yo){
-    		car.position.y=yo;
-    		vy = vy *-0.3;
-    	} else if (car.position.y>yo+0.01){
-    		vy-=0.012;
-    	} else{
-    		vy=0;
-    		car.position.y=yo;
-    	}
+    	car.position.y += vy; 
+    	if (car.position.y<yo){car.position.y=yo;vy = vy *-0.3;} else if (car.position.y>yo+0.01){vy-=0.012;} else{vy=0;car.position.y=yo;}
 
-    	var dy = oldyposition-car.position.y;
-    	wheelcontainer.position.y = dy;
+    	var dy = oldyposition-car.position.y; wheelcontainer.position.y = dy; // take dy for wheel movement while jumping
     	// 360 ROTATION
-    	if(rotating){
-    		orbitcontrols.update();
-    	}
+    	if(rotating){ orbitcontrols.update();}
     	// MOVING BACK AND FORTH
     	if(moving){
     		car.position.z += vz;
