@@ -12,7 +12,6 @@ var rotating = false; // orbtocontrols auto rotate
 var vy = 0; // vertical velocity
 var yo = 0; // vertical start position
 
-
 var car = new THREE.Object3D();  // container for entire car
 var wheelcontainer = new THREE.Object3D(); // container for wheels
 var paintjob = new THREE.Object3D(); // container for paint work only
@@ -45,7 +44,6 @@ var light2 = new THREE.DirectionalLight("#999988",2);
 light2.position.set(-100, 200,200);
 scene.add(light2);
 scene.add(light1);
-
 if(shadows){
 	light1.castShadow = true;
 	light2.castShadow = true;
@@ -57,24 +55,23 @@ if(shadows){
 	light2.shadow.camera.far = 500;
 };
 
+animate(); //START RENDERER BEFORE LOADING
 
-animate();
+// SET UI FOR LOADING
 var outputtext = document.getElementById("overlay_left");
 var buttons = document.getElementById("overlay_right");
 var envloader = new THREE.CubeTextureLoader();
 outputtext.innerHTML  = "Loading environment textures: 172KB";
 
+// CONFIGURE LOADER
 var loader, uloader, dloader, draco;
-
 uloader = new THREE.GLTFLoader().setPath( 'model_final_mix/' );
-
 if(useDraco){
 	dloader = new THREE.GLTFLoader().setPath( 'model_final_mix/' );
 	var draco = new THREE.DRACOLoader();
 	//draco.setDecoderConfig({ type: 'js' });
 	draco.setDecoderPath('https://www.gstatic.com/draco/v1/decoders/');
 	dloader.setDRACOLoader( draco );
-	
 } else {
 	uloader = new THREE.GLTFLoader().setPath( 'model_uncompressed/' );
 }
@@ -142,7 +139,6 @@ if(shadows){
 };
 
 // CHANGE PAINT JOB
-
 function changecolour(col){
 	var newpaintmaterial = new THREE.MeshPhysicalMaterial( {
 			clearcoat:0.7,
@@ -225,7 +221,7 @@ function loadchromeasymmetric(){
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
             child.material = chromematerial;
-                        if(shadows){
+            if(shadows){
             	child.castShadow = true;
 				child.receiveShadow = true;
 			}
@@ -247,19 +243,15 @@ function loadfeaturesasymmetric(){
             if(child.name.substring(0,7)=="blacken"){
             	child.material = blackmaterial;
             };
-                        if(shadows){
+            if(shadows){
             	child.castShadow = true;
 			}
         }
     } )
-	
 	car.add( gltf.scene );
-
-	
 	loadblack();
 	},function ( data ) {
 		outputtext.innerHTML = "Loading Asymmetric features: " + data.loaded + " Bytes";
-		
 	} );
 
 }
@@ -270,7 +262,7 @@ function loadblack(){
 	gltf.scene.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
             child.material = blackmaterial;
-                        if(shadows){
+            if(shadows){
             	child.castShadow = true;
 				child.receiveShadow = true;
 			}
@@ -285,9 +277,7 @@ function loadblack(){
 	otherhalf.position.x += xcorrection;
 	loadwheelblack();
 	},function ( data ) {
-
 		outputtext.innerHTML = "Loading Black Features: " + data.loaded + " Bytes";
-		
 	} );
 
 }
@@ -323,9 +313,7 @@ function loadwheelblack(){
 			}
 	loadwheelchrome();
 	},function ( data ) {
-
 		outputtext.innerHTML = "Loading Black Wheel: " + data.loaded + " Bytes";
-		
 	} );
 
 }
@@ -351,7 +339,6 @@ function loadwheelchrome(){
 	var xcorrection =-0.002;
 	gltf.scene.position.x -= xcorrection;
 	otherhalf.position.x += xcorrection;
-
 	var front = back.clone();
 	wheelcontainer.add(front);
 	front.position.z += 2.4;
@@ -404,15 +391,19 @@ function loadglass(){
 }
 
 function finishedLoading(){
-	outputtext.innerHTML  = "Finished Loading.<br/>Use left mouse button and move to rotate,<br/>right mouse button and move to pan,<br/>and mousewheel to zoom.<br/>Also use buttons on the right<br/>to move or jump the car,<br/>and rotate around it automatically.";//<br/>and to change its paint colour.";
-	buttons.innerHTML = "<button type='button' id='button360'>360</button><br/><button type='button' id='buttonmove'>Move</button><br/><button type='button' id='buttonjump'>Jump</button><br/>Colours:<br/><button type='button' id='buttonoriginal'>Original</button><br/><button type='button' id='buttonblack'>Black</button><br/><button type='button' id='buttonblue'>Blue</button>";
 	finished = true;
+	// ADD LOADED TEXT
+	outputtext.innerHTML  = "Finished Loading.<br/>Use left mouse button and move to rotate,<br/>right mouse button and move to pan,<br/>and mousewheel to zoom.<br/>Also use buttons on the right<br/>to move or jump the car,<br/>and rotate around it automatically.<br/>and to change its paint colour.";
+	// ADD BUTTONS
+	buttons.innerHTML = "<button type='button' id='button360'>360</button><br/><button type='button' id='buttonmove'>Move</button><br/><button type='button' id='buttonjump'>Jump</button><br/>Colours:<br/><button type='button' id='buttonoriginal'>Original</button><br/><button type='button' id='buttonblack'>Black</button><br/><button type='button' id='buttonblue'>Blue</button>";
+	// ADD BUTTON FUNCTION CALLS
 	document.getElementById("buttonmove").onclick = function () { if(moving){moving=false}else{moving=true} };
 	document.getElementById("button360").onclick = function () { if(rotating){rotating=false;orbitcontrols.autoRotate=false;}else{rotating=true; orbitcontrols.autoRotate=true;} };
 	document.getElementById("buttonjump").onclick = function () { vy=0.1};
 	document.getElementById("buttonblack").onclick = function () { changecolour("#000000")};
 	document.getElementById("buttonblue").onclick = function () { changecolour("#1122ff")};
 	document.getElementById("buttonoriginal").onclick = function () { changecolour("#611212")};
+	// FIND ALL ROTATING ELEMMENTS
 	car.traverse(function( child ) {
         if ( child instanceof THREE.Mesh ) {
         	if(child.name.substring(0,5)=="wheel"){
@@ -427,6 +418,7 @@ function finishedLoading(){
 function animate(){
     requestAnimationFrame(() => { animate() } );
     if(finished){
+    	// JUMPING ANIMATION
     	var oldyposition = car.position.y;
     	car.position.y += vy;
     	
@@ -442,13 +434,12 @@ function animate(){
 
     	var dy = oldyposition-car.position.y;
     	wheelcontainer.position.y = dy;
-    	
+    	// 360 ROTATION
     	if(rotating){
     		orbitcontrols.update();
-
     	}
+    	// MOVING BACK AND FORTH
     	if(moving){
-
     		car.position.z += vz;
     		if(car.position.z>zo){vz-=0.001}
     		if(car.position.z<zo){vz+=0.001}
@@ -456,6 +447,7 @@ function animate(){
     			wheels[i].rotation.x = car.position.z*-1.7;
     		}
     	}
+
     }
     renderer.render(scene, camera);
 }
